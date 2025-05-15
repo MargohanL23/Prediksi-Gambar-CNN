@@ -1,17 +1,15 @@
 import streamlit as st
-import tensorflow as tf # type: ignore
+import tensorflow as tf  # type: ignore
 import numpy as np
 from PIL import Image
 import os
-import gdown # type: ignore
-
+import gdown  # type: ignore
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Prediksi Penyakit Kulit", layout="centered")
 st.title("🩺 Prediksi Penyakit Kulit dari Gambar")
 st.write("Silakan upload gambar kulit untuk diprediksi oleh model klasifikasi.")
 
-# Cek dan unduh model jika belum ada
 @st.cache_resource
 def load_model():
     model_path = "model86.keras"
@@ -19,8 +17,15 @@ def load_model():
 
     if not os.path.exists(model_path):
         with st.spinner("📥 Mengunduh model dari Google Drive..."):
-            gdown.download(gdrive_url, model_path, quiet=False)
-            st.success("✅ Model berhasil diunduh.")
+            try:
+                output = gdown.download(gdrive_url, model_path, quiet=False)
+                if output is None:
+                    st.error("❌ Gagal mengunduh model. Periksa URL atau izin file Google Drive.")
+                    st.stop()
+                st.success("✅ Model berhasil diunduh.")
+            except Exception as e:
+                st.error(f"❌ Terjadi kesalahan saat mengunduh: {e}")
+                st.stop()
 
     model = tf.keras.models.load_model(model_path)
     return model
@@ -38,30 +43,16 @@ if uploaded_file is not None:
     st.image(image, caption='🖼️ Gambar yang Diunggah', use_column_width=True)
 
     if st.button("🔍 Prediksi"):
-        # Preprocessing
-        image_resized = image.resize((150, 150))  # Sesuaikan jika modelmu pakai input lain
+        # Preprocessing gambar
+        image_resized = image.resize((150, 150))  # Sesuaikan dengan input model
         img_array = tf.keras.utils.img_to_array(image_resized) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        # Prediksi
+        # Prediksi kelas
         prediction = model.predict(img_array)
         pred_class = class_names[np.argmax(prediction)]
         confidence = float(np.max(prediction)) * 100
 
-        # Tampilkan hasil
+        # Tampilkan hasil prediksi
         st.success(f"✅ Prediksi: **{pred_class}**")
         st.info(f"Tingkat kepercayaan: **{confidence:.2f}%**")
-
-
-if not os.path.exists(model_path):
-    with st.spinner("📥 Mengunduh model dari Google Drive..."):
-        try:
-            output = gdown.download(gdrive_url, model_path, quiet=False)
-            if output is None:
-                st.error("❌ Gagal mengunduh model. Periksa URL atau izin file Google Drive.")
-                st.stop()
-            st.success("✅ Model berhasil diunduh.")
-        except Exception as e:
-            st.error(f"❌ Terjadi kesalahan saat mengunduh: {e}")
-            st.stop()
-
