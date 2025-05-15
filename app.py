@@ -51,3 +51,17 @@ if uploaded_file is not None:
         # Tampilkan hasil
         st.success(f"✅ Prediksi: **{pred_class}**")
         st.info(f"Tingkat kepercayaan: **{confidence:.2f}%**")
+
+
+if not os.path.exists(model_path):
+    with st.spinner("📥 Mengunduh model dari Google Drive..."):
+        try:
+            output = gdown.download(gdrive_url, model_path, quiet=False)
+            if output is None:
+                st.error("❌ Gagal mengunduh model. Periksa URL atau izin file Google Drive.")
+                st.stop()
+            st.success("✅ Model berhasil diunduh.")
+        except Exception as e:
+            st.error(f"❌ Terjadi kesalahan saat mengunduh: {e}")
+            st.stop()
+
