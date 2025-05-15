@@ -2,8 +2,9 @@ import streamlit as st
 import tensorflow as tf # type: ignore
 import numpy as np
 from PIL import Image
-import gdown # type: ignore
 import os
+#import gdown # type: ignore
+
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Prediksi Penyakit Kulit", layout="centered")
